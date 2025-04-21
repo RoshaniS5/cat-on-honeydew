@@ -5,38 +5,47 @@
   const GIF = "cat-washes-face.gif"
   const COLOR = 'honeydew'
   
-  async function createGif (x, y) {
-    const gif = await nn.loadImage(GIF)
+  function sleep (ms) {
+    return new Promise(resolve => setTimeout(resolve, ms))
+  }
+  
+  function createGif (x, y, w, h, url) {
     nn.create('img')
       .set({ 
-        src: `${GIF}#${Math.random()}` 
+        src: `${url}#${Math.random()}` 
     })
       .css({
         position: 'absolute',
-        left: x - gif.width / 2,
-        top: y - gif.height / 2,
-        imageRendering: 'pixelated'
+        left: x - w / 2,
+        top: y - h / 2,
+        width: w,
+        height: h,
+        imageRendering: 'pixelated',
+        filter: 'drop-shadow(0px 0px 10px pink)',
+        transition: 'all 1s'
     })
       .addTo('body')
   }
   
-  async function setup () {
-    nn.get('body').css({ backgroundColor: COLOR })
-    
-    const gif = await nn.loadImage(GIF)
-    
-    const colSize = gif.width / 4
-    const numCols = nn.width / colSize
-    const rowSize = gif.height / 4
-    const numRows = nn.height * 0.75 / rowSize
-    
-    for (let r = 0; r < numRows; r++) {
-      for (let c = 0; c < numCols; c++) {
-        const x = c * colSize
-        const y = r * rowSize
-        createGif(x, y)
-      }
+  async function createGifHeart (num, scale, radius, url) {
+    const gif = await nn.loadImage(url)
+    for (let i = 0; i < num; i++) {
+      const cx = nn.width / 2
+      const cy = nn.height / 2
+      const x = cx + 16 * Math.pow(Math.sin(i * scale), 3) * radius
+      const y = cy - (13 * Math.cos(i * scale) - 5 * Math.cos(i * scale * 2) - 2 * Math.cos(i * scale * 3) - Math.cos(i * scale * 4)) * radius
+      await sleep(100)
+      createGif(x, y, gif.width / 2, gif.height / 2, url)
     }
+  }
+  
+  async function setup () {
+    nn.get('body').css({ 
+      backgroundColor: COLOR,
+      overflow: 'hidden'
+    })
+    createGifHeart(100, 0.2, -7, GIF)
+    createGifHeart(100, 0.2, 15, GIF)
   }
 
   nn.on('load', setup)
