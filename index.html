@@ -10,9 +10,10 @@
   }
   
   function createGif (x, y, w, h, url) {
-    nn.create('img')
+    const gif = nn.create('img')
       .set({ 
-        src: `${url}#${Math.random()}` 
+        src: `${url}#${Math.random()}`,
+        draggable: false
     })
       .css({
         position: 'absolute',
@@ -22,30 +23,54 @@
         height: h,
         imageRendering: 'pixelated',
         filter: 'drop-shadow(0px 0px 10px pink)',
-        transition: 'all 1s'
+        transition: 'all 1s',
+        cursor: 'pointer'
     })
       .addTo('body')
+    
+    gif.on('mouseover', () => {
+      gif.css({
+        filter: 'drop-shadow(0px 0px 20px mediumorchid)',
+        width: 2 * w,
+        height: 2 * h
+      })
+    })
+    
+    gif.on('mouseout', () => {
+      setTimeout(() => {
+        gif.css({
+          filter: 'drop-shadow(0px 0px 10px pink)',
+          width: w,
+          height: h
+        })
+      }, 1000)
+    })
   }
   
-  async function createGifHeart (num, scale, radius, url) {
+  async function createGifHeart (num, scale, radius, cx, cy, onSide, url) {
     const gif = await nn.loadImage(url)
     for (let i = 0; i < num; i++) {
-      const cx = nn.width / 2
-      const cy = nn.height / 2
-      const x = cx + 16 * Math.pow(Math.sin(i * scale), 3) * radius
-      const y = cy - (13 * Math.cos(i * scale) - 5 * Math.cos(i * scale * 2) - 2 * Math.cos(i * scale * 3) - Math.cos(i * scale * 4)) * radius
-      await sleep(100)
-      createGif(x, y, gif.width / 2, gif.height / 2, url)
+      const x = 16 * Math.pow(Math.sin(i * scale), 3) * radius
+      const y = (13 * Math.cos(i * scale) - 5 * Math.cos(i * scale * 2) - 2 * Math.cos(i * scale * 3) - Math.cos(i * scale * 4)) * radius
+      await sleep(50)
+      if (onSide) {
+        createGif(cx + y, cy - x, gif.width / 2, gif.height / 2, url)
+      }
+      else {
+        createGif(cx + x, cy - y, gif.width / 2, gif.height / 2, url)
+      }
     }
-  }
+  } 
   
   async function setup () {
     nn.get('body').css({ 
       backgroundColor: COLOR,
       overflow: 'hidden'
     })
-    createGifHeart(100, 0.2, -7, GIF)
-    createGifHeart(100, 0.2, 15, GIF)
+    createGifHeart(32, 0.2, -7, nn.width / 2, 3 * nn.height / 4, false, GIF)
+    createGifHeart(32, 0.2, 7, nn.width / 2, nn.height / 4, false, GIF)
+    createGifHeart(32, 0.2, -7, nn.width / 4, nn.height / 2, true, GIF)
+    createGifHeart(32, 0.2, 7, 3 * nn.width / 4, nn.height / 2, true, GIF)
   }
 
   nn.on('load', setup)
